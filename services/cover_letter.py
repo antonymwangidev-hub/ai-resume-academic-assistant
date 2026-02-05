@@ -1,20 +1,29 @@
-from utils.prompts import cover_letter_prompt
-from openai import RateLimitError
-
 def generate_cover_letter(client, profile, job_description):
-    prompt = cover_letter_prompt(profile, job_description)
+    """
+    Generates a personalized, ethical cover letter.
+    """
 
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.4
-        )
-        return response.choices[0].message.content
+    response = client.chat.completions.create(
+        model="llama3-70b-8192",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an ethical AI cover letter assistant. "
+                    "Write concise, honest, and job-specific cover letters."
+                )
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Candidate Profile:\n{profile}\n\n"
+                    f"Job Description:\n{job_description}\n\n"
+                    "Write a professional cover letter."
+                )
+            }
+        ],
+        temperature=0.7
+    )
 
-    except RateLimitError:
-        return (
-            "⚠️ API quota exceeded.\n\n"
-            "Cover letter generation is temporarily unavailable."
-        )
+    return response.choices[0].message.content
 

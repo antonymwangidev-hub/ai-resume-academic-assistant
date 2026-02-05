@@ -1,21 +1,30 @@
-from utils.prompts import resume_prompt
-from openai import RateLimitError
-
 def generate_resume(client, profile, job_description):
-    prompt = resume_prompt(profile, job_description)
+    """
+    Generates an ATS-friendly resume using Groq LLMs.
+    """
 
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3
-        )
-        return response.choices[0].message.content
+    response = client.chat.completions.create(
+        model="llama3-70b-8192",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an ethical AI resume writer. "
+                    "Generate professional, ATS-friendly resumes. "
+                    "Do not fabricate experience or credentials."
+                )
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Candidate Profile:\n{profile}\n\n"
+                    f"Target Job Description:\n{job_description}\n\n"
+                    "Generate a tailored resume."
+                )
+            }
+        ],
+        temperature=0.6
+    )
 
-    except RateLimitError:
-        return (
-            "⚠️ API quota exceeded.\n\n"
-            "This demo is currently running in limited mode.\n"
-            "Please try again later or contact the developer."
-        )
+    return response.choices[0].message.content
 

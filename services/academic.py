@@ -1,20 +1,30 @@
-from utils.prompts import academic_prompt
-from openai import RateLimitError
+def improve_academic_writing(client, text, citation_style):
+    """
+    Improves academic writing ethically with citation awareness.
+    """
 
-def improve_academic_text(client, text, citation_style):
-    prompt = academic_prompt(text, citation_style)
+    response = client.chat.completions.create(
+        model="mixtral-8x7b-32768",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an ethical academic writing assistant. "
+                    "Improve clarity, structure, and grammar. "
+                    "Do NOT generate false citations. "
+                    f"Use {citation_style} citation style if needed."
+                )
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Academic Text:\n{text}\n\n"
+                    "Improve this text while preserving the original meaning."
+                )
+            }
+        ],
+        temperature=0.4
+    )
 
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2
-        )
-        return response.choices[0].message.content
-
-    except RateLimitError:
-        return (
-            "⚠️ API quota exceeded.\n\n"
-            "Academic writing assistance is temporarily unavailable."
-        )
+    return response.choices[0].message.content
 
